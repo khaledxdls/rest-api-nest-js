@@ -8,27 +8,29 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
   // Controller methods will go here
   // @get /users or /users?name=John
   @Get()
   getAllUsers(@Query('name') name: string) {
     // Logic to get all users will go here
-    return 'This will return all users' + (name ? ' with name: ' + name : '');
+    return this.usersService.getAllUsers(name);
   }
 
   // @get user by id
   @Get(':id')
   getUserById(@Param('id') id: string) {
-    return 'This will return a user by id: ' + id;
+    return this.usersService.getUserById(Number(id));
   }
 
   // post a new user
   @Post()
   createUser(@Body() userData: { name: string; age: number }) {
-    return 'This will create a new user' + JSON.stringify(userData);
+    return this.usersService.createUser(userData);
   }
   // update a user
   @Patch(':id')
@@ -36,17 +38,12 @@ export class UsersController {
     @Param('id') id: string,
     @Body() userData: { name?: string; age?: number },
   ) {
-    return (
-      'This will update a user with id: ' +
-      id +
-      ' and data: ' +
-      JSON.stringify(userData)
-    );
+    return this.usersService.updateUser(Number(id), userData);
   }
 
   // delete a user
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
-    return 'This will delete a user with id: ' + id;
+    return this.usersService.deleteUser(Number(id));
   }
 }
