@@ -7,30 +7,42 @@ import {
   Param,
   Delete,
   Query,
+  Ip,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { Prisma } from '@prisma/client';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import { MyLoggerService } from 'src/my-logger/my-logger.service';
 
 @SkipThrottle()
 @Controller('employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
-
+  private readonly logger = new MyLoggerService();
   @Post()
   create(@Body() createEmployeeDto: Prisma.EmployeeCreateInput) {
+    this.logger.log('Creating employee', 'EmployeesController');
     return this.employeesService.create(createEmployeeDto);
   }
 
   @SkipThrottle({ default: false })
   @Get()
-  findAll(@Query('role') role?: 'INTERN' | 'ENGINEER' | 'ADMIN') {
+  findAll(
+    @Ip() ip: string,
+    @Query('role') role?: 'INTERN' | 'ENGINEER' | 'ADMIN',
+  ) {
+    this.logger.log(
+      `Finding all employees${role ? ` with role ${role}` : ''}`,
+      'EmployeesController',
+      ip,
+    );
     return this.employeesService.findAll(role);
   }
 
   @Throttle({ short: { ttl: 1000, limit: 1 } })
   @Get(':id')
   findOne(@Param('id') id: string) {
+    this.logger.log('Finding employee', 'EmployeesController');
     return this.employeesService.findOne(+id);
   }
 
@@ -39,11 +51,13 @@ export class EmployeesController {
     @Param('id') id: string,
     @Body() updateEmployeeDto: Prisma.EmployeeUpdateInput,
   ) {
+    this.logger.log('Updating employee', 'EmployeesController');
     return this.employeesService.update(+id, updateEmployeeDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
+    this.logger.log('Removing employee', 'EmployeesController');
     return this.employeesService.remove(+id);
   }
 }
